@@ -68,16 +68,19 @@ class Revision:
         return "Revision("+repr(self.number)+", "+repr(self.id)+", "+repr(self.reviews)+")"
 
 class Review:
-    def __init__(self, score, author, message):
-        self.score = score
+    def __init__(self, value, author, message):
+        self.value = value
         self.author = author
         self.message = message
+
+    def vote(self):
+        return "{0:+d}".format(self.value) if self.value != 0 else str(0)
 
     def message_without_vote(self):
         return self.message.partition('\n\n')[2]
 
     def __repr__(self):
-        return "Review("+repr(self.score)+", "+repr(self.author)+", "+repr(self.message)+")"
+        return "Review("+repr(self.vote())+", "+repr(self.author)+", "+repr(self.message)+")"
 
 class Author:
     def __init__(self, username, name, email):
@@ -119,7 +122,7 @@ def changes(change_numbers):
                 author = Author(code_review.get("username", ""), code_review["name"], code_review.get("email", ""))
                 debug(author)
 
-                score = code_review["value"]
+                value = code_review["value"]
 
                 messages_of_this_revision_of_this_author = [m for m in messages_of_this_revision if m["author"]["name"] == author.name]
                 #debug(messages_of_this_revision_of_this_author)
@@ -128,7 +131,7 @@ def changes(change_numbers):
                     message = messages_of_this_revision_of_this_author[0]["message"]
                     #debug(message)
 
-                    review = Review(score, author, message)
+                    review = Review(value, author, message)
                     r.reviews.append(review)
                     debug(review)
 
@@ -152,7 +155,6 @@ def report_page_from_changes(changes):
     |||||||
     """
 
-
     wiki_page_name = "h1. US904 - As a Dev I want to do code review on OpenStack code"
     header = wiki_page_name+"""
 
@@ -169,8 +171,8 @@ def report_page_from_changes(changes):
                 rev = '"'+change.title()+'":'+change.permalink()
                 project = change.project
                 patch = str(revision.number)
-                score = str(review.score)
-                comment = review.message_without_vote().replace('\n', ' ') #"" #review.message
+                score = review.vote()
+                comment = review.message_without_vote().replace('\n', ' ')
                 if reviewer_author_filter(review.author):
                     print("|"+ reviewer +"|"+ rev +"|"+ project +"|"+ patch +"|"+ score +"|"+ comment +"|")
 
