@@ -53,7 +53,7 @@ class Change:
         return "Change "+self.id[0:9]+": "+self.subject
 
     def permalink(self):
-        return "https://review.openstack.org/"+str(change.number)
+        return "https://review.openstack.org/"+str(self.number)
 
     def __repr__(self):
         return "Change("+repr(self.number)+", "+repr(self.id)+", "+repr(self.subject)+", "+repr(self.project)+", "+repr(self.revisions)+")"
@@ -91,83 +91,90 @@ class Author:
 
 # Action
 
-gerrit = Gerrit()
+def changes(change_numbers):
+    gerrit = Gerrit()
 
-changes = []
-for change_number in change_numbers:
-    change = gerrit.fetch_change(change_number)
+    changes = []
+    for change_number in change_numbers:
+        change = gerrit.fetch_change(change_number)
 
-    debug(change["subject"])
-    ch = Change(change["_number"], change["change_id"], change["subject"], change["project"])
+        debug(change["subject"])
+        ch = Change(change["_number"], change["change_id"], change["subject"], change["project"])
 
-    revision_ids = change["revisions"].keys()
-    debug("==========")
-    for revision_id in revision_ids:
-        revision = gerrit.fetch_revision(change_number, revision_id)
-        #debug(revision)
-
-        r = Revision(revision["id"], revision["revisions"].values()[0]["_number"])
-        debug("Revision: " + str(r.number))
-
-        messages_of_this_revision = [m for m in change["messages"] if m["_revision_number"] == r.number]
-        #debug(messages_of_this_revision)
-
-        code_reviews = revision["labels"]["Code-Review"]["all"]
-        for code_review in code_reviews:
-            #debug(change["messages"])
-            author = Author(code_review.get("username", ""), code_review["name"], code_review.get("email", ""))
-            debug(author)
-
-            score = code_review["value"]
-
-            messages_of_this_revision_of_this_author = [m for m in messages_of_this_revision if m["author"]["name"] == author.name]
-            #debug(messages_of_this_revision_of_this_author)
-
-            if messages_of_this_revision_of_this_author: #is not empty
-                message = messages_of_this_revision_of_this_author[0]["message"]
-                #debug(message)
-
-                review = Review(score, author, message)
-                r.reviews.append(review)
-                debug(review)
-
-        #debug(code_reviews)
+        revision_ids = change["revisions"].keys()
         debug("==========")
-        ch.revisions.append(r)
-        debug(r)
+        for revision_id in revision_ids:
+            revision = gerrit.fetch_revision(change_number, revision_id)
+            #debug(revision)
 
-    changes.append(ch)
-    debug(ch)
+            r = Revision(revision["id"], revision["revisions"].values()[0]["_number"])
+            debug("Revision: " + str(r.number))
+
+            messages_of_this_revision = [m for m in change["messages"] if m["_revision_number"] == r.number]
+            #debug(messages_of_this_revision)
+
+            code_reviews = revision["labels"]["Code-Review"]["all"]
+            for code_review in code_reviews:
+                #debug(change["messages"])
+                author = Author(code_review.get("username", ""), code_review["name"], code_review.get("email", ""))
+                debug(author)
+
+                score = code_review["value"]
+
+                messages_of_this_revision_of_this_author = [m for m in messages_of_this_revision if m["author"]["name"] == author.name]
+                #debug(messages_of_this_revision_of_this_author)
+
+                if messages_of_this_revision_of_this_author: #is not empty
+                    message = messages_of_this_revision_of_this_author[0]["message"]
+                    #debug(message)
+
+                    review = Review(score, author, message)
+                    r.reviews.append(review)
+                    debug(review)
+
+            #debug(code_reviews)
+            debug("==========")
+            ch.revisions.append(r)
+            debug(r)
+
+        changes.append(ch)
+        debug(ch)
+
+    return changes
+
+def report_page_from_changes(changes):
+    """
+    h1. US904 - As a Dev I want to do code review on OpenStack code
+
+    table{border:1px bordercolor:darkblue}.
+    |_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision
+    score|_{background:#ffa}.Comment|
+    |||||||
+    """
 
 
-"""
-h1. US904 - As a Dev I want to do code review on OpenStack code
+    wiki_page_name = "h1. US904 - As a Dev I want to do code review on OpenStack code"
+    header = wiki_page_name+"""
 
-table{border:1px bordercolor:darkblue}.
-|_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision
-score|_{background:#ffa}.Comment|
-|||||||
-"""
+    table{border:1px bordercolor:darkblue}.
+    |_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision
+    score|_{background:#ffa}.Comment|"""
+    print(header)
 
+    for change in changes:
+        for revision in change.revisions:
+            for review in revision.reviews:
+                #Reviewer    Review  Project Patch   Revision score  Comment
+                reviewer = review.author.name
+                rev = '"'+change.title()+'":'+change.permalink()
+                project = change.project
+                patch = str(revision.number)
+                score = str(review.score)
+                comment = review.message_without_vote().replace('\n', ' ') #"" #review.message
+                if reviewer_author_filter(review.author):
+                    print("|"+ reviewer +"|"+ rev +"|"+ project +"|"+ patch +"|"+ score +"|"+ comment +"|")
 
-wiki_page_name = "h1. US904 - As a Dev I want to do code review on OpenStack code"
-header = wiki_page_name+"""
-
-table{border:1px bordercolor:darkblue}.
-|_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision
-score|_{background:#ffa}.Comment|"""
-print(header)
-
-for change in changes:
-    for revision in change.revisions:
-        for review in revision.reviews:
-            #Reviewer    Review  Project Patch   Revision score  Comment
-            reviewer = review.author.name
-            rev = '"'+change.title()+'":'+change.permalink()
-            project = change.project
-            patch = str(revision.number)
-            score = str(review.score)
-            comment = review.message_without_vote().replace('\n', ' ') #"" #review.message
-            if reviewer_author_filter(review.author):
-                print("|"+ reviewer +"|"+ rev +"|"+ project +"|"+ patch +"|"+ score +"|"+ comment +"|")
+if __name__ == '__main__':
+    changes = changes(change_numbers)
+    report_page_from_changes(changes)
 
