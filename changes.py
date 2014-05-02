@@ -94,12 +94,12 @@ class Author:
 
 # Action
 
-def changes(change_numbers):
-    gerrit = Gerrit()
+class ChangeParser:
+    def __init__(self):
+        self.gerrit = Gerrit()
 
-    changes = []
-    for change_number in change_numbers:
-        change = gerrit.fetch_change(change_number)
+    def change_with_number(self, change_number):
+        change = self.gerrit.fetch_change(change_number)
 
         debug(change["subject"])
         ch = Change(change["_number"], change["change_id"], change["subject"], change["project"])
@@ -107,7 +107,7 @@ def changes(change_numbers):
         revision_ids = change["revisions"].keys()
         debug("==========")
         for revision_id in revision_ids:
-            revision = gerrit.fetch_revision(change_number, revision_id)
+            revision = self.gerrit.fetch_revision(change_number, revision_id)
             #debug(revision)
 
             r = Revision(revision["id"], revision["revisions"].values()[0]["_number"])
@@ -140,10 +140,11 @@ def changes(change_numbers):
             ch.revisions.append(r)
             debug(r)
 
-        changes.append(ch)
         debug(ch)
+        return ch
 
-    return changes
+    def changes(self, change_numbers):
+        return [self.change_with_number(cn) for cn in change_numbers]
 
 def report_page_from_changes(changes):
     """
@@ -158,9 +159,9 @@ def report_page_from_changes(changes):
     wiki_page_name = "h1. US904 - As a Dev I want to do code review on OpenStack code"
     header = wiki_page_name+"""
 
-    table{border:1px bordercolor:darkblue}.
-    |_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision
-    score|_{background:#ffa}.Comment|"""
+table{border:1px bordercolor:darkblue}.
+|_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision
+score|_{background:#ffa}.Comment|"""
     print(header)
 
     for change in changes:
@@ -177,6 +178,7 @@ def report_page_from_changes(changes):
                     print("|"+ reviewer +"|"+ rev +"|"+ project +"|"+ patch +"|"+ score +"|"+ comment +"|")
 
 if __name__ == '__main__':
-    changes = changes(change_numbers)
+    change_parser = ChangeParser()
+    changes = change_parser.changes(change_numbers)
     report_page_from_changes(changes)
 
