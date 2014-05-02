@@ -10,14 +10,13 @@ def debug(msg):
     pass
     #print(msg)
 
+def info(msg):
+    #pass
+    print(msg)
 
 #change_numbers = [90771, 90476]
 #change_numbers = [87406, 86250, 85199, 79112, 64103, 87861, 79411, 57492, 78658, 90476]
 change_numbers = ['87406', '86250', '85199', '79112', '64103', '87861', '79411', '57492', '78658', '90476']
-
-def reviewer_author_filter(author):
-    return author.email.endswith("@lsd.ufcg.edu.br")
-
 
 # Gerrit
 
@@ -34,7 +33,7 @@ class Gerrit:
         return self.__fetch_json(url)
 
     def __fetch_json(self, url):
-        debug("Fetching: " + url)
+        info("[Gerrit] Fetching: " + url)
         response_body = urllib2.urlopen(url).read()
         sanitized_body = response_body.partition("'")[2]
         return json.loads(sanitized_body)
@@ -147,43 +146,8 @@ class ChangeParser:
     def changes(self, change_numbers):
         return [self.change_with_number(cn) for cn in change_numbers]
 
-def report_page_from_changes(changes):
-    """
-    h1. US904 - As a Dev I want to do code review on OpenStack code
-
-    table{border:1px bordercolor:darkblue}.
-    |_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision
-    score|_{background:#ffa}.Comment|
-    |||||||
-    """
-
-    wiki_page_name = "h1. US904 - As a Dev I want to do code review on OpenStack code"
-    header = wiki_page_name+"""
-
-table{border:1px bordercolor:darkblue}.
-|_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision score|_{background:#ffa}.Comment|"""
-    print(header)
-
-    for change in changes:
-        for revision in change.revisions:
-            for review in revision.reviews:
-                #Reviewer    Review  Project Patch   Revision score  Comment
-                reviewer = review.author.name
-                rev = '"'+change.title()+'":'+change.permalink()
-                project = change.project
-                patch = str(revision.number)
-                score = review.vote()
-                comment = review.message_without_vote().replace('\n', ' ')
-                if reviewer_author_filter(review.author):
-                    print("|"+ reviewer +"|"+ rev +"|"+ project +"|"+ patch +"|"+ score +"|"+ comment +"|")
 
 if __name__ == '__main__':
     change_parser = ChangeParser()
     changes = change_parser.changes(change_numbers)
-    report_page_from_changes(changes)
-
-
-#TODO:
-# - filter by date
-
-
+    print(repr(changes))
