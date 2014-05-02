@@ -12,7 +12,8 @@ def debug(msg):
 
 
 #change_numbers = [90771, 90476]
-change_numbers = [87406, 86250, 85199, 79112, 64103, 87861, 79411, 57492, 78658, 90476]
+#change_numbers = [87406, 86250, 85199, 79112, 64103, 87861, 79411, 57492, 78658, 90476]
+change_numbers = ['87406', '86250', '85199', '79112', '64103', '87861', '79411', '57492', '78658', '90476']
 
 def reviewer_author_filter(author):
     return author.email.endswith("@lsd.ufcg.edu.br")
@@ -160,8 +161,7 @@ def report_page_from_changes(changes):
     header = wiki_page_name+"""
 
 table{border:1px bordercolor:darkblue}.
-|_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision
-score|_{background:#ffa}.Comment|"""
+|_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision score|_{background:#ffa}.Comment|"""
     print(header)
 
     for change in changes:
@@ -181,4 +181,9 @@ if __name__ == '__main__':
     change_parser = ChangeParser()
     changes = change_parser.changes(change_numbers)
     report_page_from_changes(changes)
+
+
+#TODO:
+# - filter by date
+
 
