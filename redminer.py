@@ -4,8 +4,9 @@
 
 from __future__ import print_function
 
-from redmine import Redmine
+import time
 from os import environ as env
+from redmine import Redmine
 
 from gerriter import ChangeParser
 from inputparser import ParsedInputPage
@@ -14,18 +15,19 @@ from inputparser import ParsedInputPage
 # Wiki and Report abstraction
 
 class ReportPage:
-    def __init__(self, report_item, changes):
+    def __init__(self, report_item, changes, page_timestamp):
         self.report_item = report_item
         self.title = report_item.wiki_page
 
         self.changes = changes
 
+        self.page_timestamp = page_timestamp
+
     def wiki_text(self):
-        return self.__crlf_ed(self.__template_with(self.title, self.__change_rows()))
+        return self.__crlf_ed(self.__template_with(self.title, self.__change_rows(), self.page_timestamp))
 
     def __change_rows(self):
         def review_filter(review):
-            #TODO: filter by date
             return review.author.email.endswith("@lsd.ufcg.edu.br") and \
                     (self.report_item.from_date <= review.timestamp if self.report_item.from_date != None else True) and \
                     (review.timestamp <= self.report_item.until_date  if self.report_item.until_date != None else True)
@@ -47,14 +49,17 @@ class ReportPage:
 
         return change_rows
 
-    def __template_with(self, title, change_rows):
+    def __template_with(self, title, change_rows, page_timestamp):
+        time_string = time.strftime("%Y-%m-%d %H:%M:%S %Z", page_timestamp)
         template = \
 """h1. $title$
 
 table{border:1px bordercolor:darkblue}.
 |_{background:#ffa}.Reviewer|_{background:#ffa}.Review|_{background:#ffa}.Project|_{background:#ffa}.Patch|_{background:#ffa}.Revision score|_{background:#ffa}.Comment|
-$change_rows$"""
-        return template.replace('$title$', title).replace('$change_rows$', '\n'.join(change_rows))
+$change_rows$
+
+Last updated on: $page_timestamp$"""
+        return template.replace('$title$', title).replace('$change_rows$', '\n'.join(change_rows)).replace('$page_timestamp$', time_string)
 
     def __crlf_ed(self, text):
         return text.replace('\n', '\r\n')
@@ -94,9 +99,10 @@ change_parser = ChangeParser()
 for report_item in parsed_input_page.report_items:
     if report_item.should_be_updated:
         print("Fetching: {0}".format(report_item.wiki_page))
+        timestamp = time.localtime()
         changes = change_parser.changes(report_item.review_numbers)
 
-        report_page = ReportPage(report_item, changes)
+        report_page = ReportPage(report_item, changes, timestamp)
         page_title = report_page.title
 
         print("Updating {0} on Redmine".format(page_title))

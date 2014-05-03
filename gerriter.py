@@ -1,6 +1,6 @@
 # Copyright 2014 Gabriel Assis Bezerra
 #
-# Script to fetch changes from Gerrit and generate the proper Redmine wiki page
+# Script to fetch and parse changes from Gerrit
 
 from __future__ import print_function
 from datetime import datetime
@@ -83,10 +83,12 @@ class Review:
     def __repr__(self):
         return "Review("+repr(self.vote())+", "+repr(self.author)+", "+repr(self.message)+", "+repr(self.timestamp)+")"
 
-review_with_single_line_message = Review(0, None, '\nPatch Set 9: (1 inline comment)\n', None)
+review_with_single_line_message = Review(1, None, '\nPatch Set 9: (1 inline comment)\n', None)
+assert review_with_single_line_message.vote() == '+1'
 assert review_with_single_line_message.message_without_vote() == '(1 inline comment)'
 
 review_with_multi_line_message = Review(0, None, '\nPatch Set 9:\n\n(1 comment)\n', None)
+assert review_with_multi_line_message.vote() == '0'
 assert review_with_multi_line_message.message_without_vote() == '(1 comment)'
 
 class Author:

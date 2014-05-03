@@ -1,6 +1,6 @@
 # Copyright 2014 Gabriel Assis Bezerra
 #
-# A parser for the input page from redmine with each wiki page, and their change_numbers and valid dates
+# A parser for the input page from Redmine with each wiki page, and their change_numbers and valid dates
 
 from __future__ import print_function
 
