@@ -1,4 +1,7 @@
-REDMINE_ADDRESS=
-REDMINE_KEY=
-REDMINE_PROJECT=
-VENV_DIR=
+# Redmine access information
+REDMINE_ADDRESS=http://redmine.example.com
+REDMINE_KEY=abcdefg12345
+REDMINE_PROJECT=myproject
+
+# The directory where the Python virtual environment should be set.
+VENV_DIR=venv
