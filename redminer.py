@@ -10,8 +10,10 @@ from inputparser import ParsedInputPage
 # Wiki and Report abstraction
 
 class ReportPage:
-    def __init__(self, title, changes):
-        self.title = title
+    def __init__(self, report_item, changes):
+        self.report_item = report_item
+        self.title = report_item.wiki_page
+
         self.changes = changes
 
     def wiki_text(self):
@@ -20,7 +22,9 @@ class ReportPage:
     def __change_rows(self):
         def review_filter(review):
             #TODO: filter by date
-            return review.author.email.endswith("@lsd.ufcg.edu.br")
+            return review.author.email.endswith("@lsd.ufcg.edu.br") and \
+                    (self.report_item.from_date <= review.timestamp if self.report_item.from_date != None else True) and \
+                    (review.timestamp <= self.report_item.until_date  if self.report_item.until_date != None else True)
 
         change_rows = []
         for change in self.changes:
@@ -88,7 +92,7 @@ for report_item in parsed_input_page.report_items:
         print("Fetching: {0}".format(report_item.wiki_page))
         changes = change_parser.changes(report_item.review_numbers)
 
-        report_page = ReportPage(report_item.wiki_page, changes)
+        report_page = ReportPage(report_item, changes)
         page_title = report_page.title
 
         print("Updating {0} on Redmine".format(page_title))

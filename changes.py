@@ -3,6 +3,8 @@
 # Script to fetch changes from Gerrit and generate the proper Redmine wiki page
 
 from __future__ import print_function
+from datetime import datetime
+
 import json
 import urllib2
 
@@ -14,9 +16,6 @@ def info(msg):
     #pass
     print(msg)
 
-#change_numbers = [90771, 90476]
-#change_numbers = [87406, 86250, 85199, 79112, 64103, 87861, 79411, 57492, 78658, 90476]
-change_numbers = ['87406', '86250', '85199', '79112', '64103', '87861', '79411', '57492', '78658', '90476']
 
 # Gerrit
 
@@ -68,10 +67,11 @@ class Revision:
         return "Revision("+repr(self.number)+", "+repr(self.id)+", "+repr(self.reviews)+")"
 
 class Review:
-    def __init__(self, value, author, message):
+    def __init__(self, value, author, message, timestamp):
         self.value = value
         self.author = author
         self.message = message
+        self.timestamp = timestamp
 
     def vote(self):
         return "{0:+d}".format(self.value) if self.value != 0 else str(0)
@@ -80,7 +80,7 @@ class Review:
         return self.message.partition('\n\n')[2]
 
     def __repr__(self):
-        return "Review("+repr(self.vote())+", "+repr(self.author)+", "+repr(self.message)+")"
+        return "Review("+repr(self.vote())+", "+repr(self.author)+", "+repr(self.message)+", "+repr(self.timestamp)+")"
 
 class Author:
     def __init__(self, username, name, email):
@@ -128,10 +128,14 @@ class ChangeParser:
                 #debug(messages_of_this_revision_of_this_author)
 
                 if messages_of_this_revision_of_this_author: #is not empty
-                    message = messages_of_this_revision_of_this_author[0]["message"]
+                    message = messages_of_this_revision_of_this_author[0]
+                    message_text = message["message"]
                     #debug(message)
 
-                    review = Review(value, author, message)
+                    # Timestamps are given in UTC and have the format "yyyy-mm-dd hh:mm:ss.fffffffff" where "ffffffffff" indicates the nanoseconds.
+                    timestamp = datetime.strptime(message["date"].rpartition('.')[0]+" UTC", "%Y-%m-%d %H:%M:%S %Z")
+
+                    review = Review(value, author, message_text, timestamp)
                     r.reviews.append(review)
                     debug(review)
 
@@ -148,6 +152,31 @@ class ChangeParser:
 
 
 if __name__ == '__main__':
+    #change_numbers = [90771, 90476]
+    #change_numbers = [87406, 86250, 85199, 79112, 64103, 87861, 79411, 57492, 78658, 90476]
+    #change_numbers = ['87406', '86250', '85199', '79112', '64103', '87861', '79411', '57492', '78658', '90476']
+    change_numbers = ['89220']
+
+    print(repr(change_numbers))
+
     change_parser = ChangeParser()
     changes = change_parser.changes(change_numbers)
-    print(repr(changes))
+
+    for change in changes:
+        print(repr(change.title))
+        for revision in change.revisions:
+            print(repr(revision.number))
+            for review in revision.reviews:
+                print(repr(review))
+
+                #| Reviewer | Review | Project | Patch | Revision score | Comment |
+                reviewer = review.author.name.split()[0]
+                rev = '"'+change.title()+'":'+change.permalink()
+                project = change.project
+                patch = str(revision.number)
+                score = review.vote()
+                comment = review.message_without_vote().replace('\n', ' ')
+
+                #print("|"+ reviewer +"|"+ rev +"|"+ project +"|"+ patch +"|"+ score +"|"+ comment +"|")
+        print('============')
+
