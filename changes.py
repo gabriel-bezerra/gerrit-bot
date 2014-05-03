@@ -77,10 +77,17 @@ class Review:
         return "{0:+d}".format(self.value) if self.value != 0 else str(0)
 
     def message_without_vote(self):
-        return self.message.partition('\n\n')[2]
+        stripped_message = self.message.strip()
+        return stripped_message.partition('\n\n')[2].strip() if len(stripped_message.split('\n')) > 1 else stripped_message.partition(':')[2].strip()
 
     def __repr__(self):
         return "Review("+repr(self.vote())+", "+repr(self.author)+", "+repr(self.message)+", "+repr(self.timestamp)+")"
+
+review_with_single_line_message = Review(0, None, 'Patch Set 9: (1 inline comment)', None)
+assert review_with_single_line_message.message_without_vote() == '(1 inline comment)'
+
+review_with_multi_line_message = Review(0, None, 'Patch Set 9:\n\n(1 comment)', None)
+assert review_with_multi_line_message.message_without_vote() == '(1 comment)'
 
 class Author:
     def __init__(self, username, name, email):
