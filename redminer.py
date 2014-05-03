@@ -1,9 +1,13 @@
+# Copyright 2014 Gabriel Assis Bezerra
+#
+# Script to fetch changes from Gerrit according to a wiki page on Redmine and generate report wiki pages
+
 from __future__ import print_function
 
 from redmine import Redmine
 from os import environ as env
 
-from changes import ChangeParser
+from gerriter import ChangeParser
 from inputparser import ParsedInputPage
 
 
