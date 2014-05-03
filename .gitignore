@@ -55,3 +55,6 @@ docs/_build/
 # Editors' files
 *.swp
 *~
+
+# gerrit-bot configuration file
+gerrit-bot-rc
