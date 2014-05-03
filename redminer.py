@@ -84,8 +84,7 @@ class RedmineWiki:
 redmine_address = env['REDMINE_ADDRESS']
 redmine_key = env['REDMINE_KEY']
 project_name = env['REDMINE_PROJECT']
-
-input_page_name = 'Code Reviews'
+input_page_name = env['REDMINE_INPUT_PAGE']
 
 print("Fetching input page from Redmine.")
 wiki = RedmineWiki(redmine_address, redmine_key, project_name)

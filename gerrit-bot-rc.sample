@@ -1,7 +1,10 @@
+#!/usr/bin/env bash
+
 # Redmine access information
-REDMINE_ADDRESS=http://redmine.example.com
-REDMINE_KEY=abcdefg12345
-REDMINE_PROJECT=myproject
+export REDMINE_ADDRESS=http://redmine.example.com
+export REDMINE_KEY=abcdefg12345
+export REDMINE_PROJECT=myproject
+export REDMINE_INPUT_PAGE='Code Reviews'
 
 # The directory where the Python virtual environment should be set.
-VENV_DIR=venv
+export VENV_DIR=venv

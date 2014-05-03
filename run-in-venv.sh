@@ -17,11 +17,14 @@ fi
 
 source $BOT_RC
 
-# VENV_DIR, REDMINE_ADDRESS, REDMINE_KEY, REDMINE_PROJECT should be set by gerrit-bot-rc
-
 set -e
 
-if [ -n $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
+if [ -z $VENV_DIR ]; then
+    echo '$VENV_DIR' is not set. You must set it in $BOT_RC. Aborting.
+    exit 1
+fi
+
+if [ ! -d $VENV_DIR ]; then
     echo Installing virtual environment and dependencies
     virtualenv $VENV_DIR
     source $VENV_DIR/bin/activate
