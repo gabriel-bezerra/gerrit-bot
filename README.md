@@ -149,5 +149,27 @@ Done.
 Done
 ```
 
+### Command line options
+
+Run it with `-h` to see command line options.
+```no-highlight
+./run-in-venv.sh -h
+```
+
+```bash
+$ ./run-in-venv.sh -h
+Running Gerrit Bot
+usage: redminer.py [-h] [-n] [-s] [-I]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -n, --dry-run         does not write reports back to Redmine
+  -s, --std-out         prints reports on standard output
+  -I, --ignore-should-be-updated
+                        ignores "Should be updated" column of input table and
+                        updates all reports. USE WITH CAUTION!
+Done
+```
+
 [virtualenv]: http://www.virtualenv.org/
 [python-redmine]: https://github.com/maxtepkeev/python-redmine
