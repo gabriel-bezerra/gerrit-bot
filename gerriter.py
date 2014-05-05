@@ -136,8 +136,7 @@ class ChangeParser:
                 messages_of_this_revision_of_this_author = [m for m in messages_of_this_revision if m["author"]["name"] == author.name]
                 #debug(messages_of_this_revision_of_this_author)
 
-                if messages_of_this_revision_of_this_author: #is not empty
-                    message = messages_of_this_revision_of_this_author[0]
+                for message in messages_of_this_revision_of_this_author:
                     message_text = message["message"]
                     #debug(message)
 
