@@ -5,6 +5,7 @@
 from __future__ import print_function
 
 import time
+import argparse
 from os import environ as env
 from redmine import Redmine
 
@@ -66,8 +67,8 @@ Last updated on: $page_timestamp$"""
 
 
 class RedmineWiki:
-    def __init__(self, address, key, project_name):
-        self.redmine = Redmine(address, key=key)
+    def __init__(self, redmine, project_name):
+        self.redmine = redmine
 
         project = self.redmine.project.get(project_name)
         self.project_id = project.id
@@ -86,8 +87,15 @@ redmine_key = env['REDMINE_KEY']
 project_name = env['REDMINE_PROJECT']
 input_page_name = env['REDMINE_INPUT_PAGE']
 
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument('-n', '--dry-run', action='store_true', help='does not write reports back to Redmine')
+arg_parser.add_argument('-s', '--std-out', action='store_true', help='prints reports on standard output')
+arg_parser.add_argument('-I', '--ignore-should-be-updated', action='store_true', help='ignores "Should be updated" column of input table and updates all reports. USE WITH CAUTION!')
+args = arg_parser.parse_args()
+
+wiki = RedmineWiki(Redmine(redmine_address, key=redmine_key), project_name)
+
 print("Fetching input page from Redmine.")
-wiki = RedmineWiki(redmine_address, redmine_key, project_name)
 input_page = wiki.get(input_page_name)
 
 print("Parsing input page.")
@@ -96,19 +104,26 @@ parsed_input_page = ParsedInputPage(input_page.text)
 print("Start updating the report of code reviews.")
 change_parser = ChangeParser()
 for report_item in parsed_input_page.report_items:
-    if report_item.should_be_updated:
+    if report_item.should_be_updated or args.ignore_should_be_updated:
         print("Fetching: {0}".format(report_item.wiki_page))
         timestamp = time.localtime()
         changes = change_parser.changes(report_item.review_numbers)
 
         report_page = ReportPage(report_item, changes, timestamp)
         page_title = report_page.title
+        page_text = report_page.wiki_text()
 
-        print("Updating {0} on Redmine".format(page_title))
-        if wiki.create_or_update(page_title, report_page.wiki_text()):
-            print("Done updating {0} on Redmine".format(page_title))
+        if args.std_out:
+            print('"{0}"\'s text:\n{1}'.format(page_title, page_text))
+
+        if args.dry_run:
+            print("Would update {0} on Redmine".format(page_title))
         else:
-            print("Failed updating {0} on Redmine".format(page_title))
+            print("Updating {0} on Redmine".format(page_title))
+            if wiki.create_or_update(page_title, page_text):
+                print("Done updating {0} on Redmine".format(page_title))
+            else:
+                print("Failed updating {0} on Redmine".format(page_title))
     else:
         print("Skipping: {0}".format(report_item.wiki_page))
 
