@@ -38,7 +38,7 @@ fi
 echo Running Gerrit Bot
 source $VENV_DIR/bin/activate
 
-python redminer.py $@
+python src/redminer.py $@
 
 deactivate
 echo Done
