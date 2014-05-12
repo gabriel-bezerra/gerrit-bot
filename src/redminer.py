@@ -40,7 +40,7 @@ class ReportPage:
                     if review_filter(review):
                         #| Reviewer | Review | Project | Patch | Revision score | Comment |
                         reviewer = review.author.name.split()[0]
-                        rev = '"'+change.title()+'":'+change.permalink()
+                        rev = '"'+str(change.number)+': '+change.subject+'":'+change.permalink()
                         project = change.project
                         patch = str(revision.number)
                         score = review.vote()
