@@ -93,7 +93,7 @@ arg_parser.add_argument('-s', '--std-out', action='store_true', help='prints rep
 arg_parser.add_argument('-I', '--ignore-should-be-updated', action='store_true', help='ignores "Should be updated" column of input table and updates all reports. USE WITH CAUTION!')
 args = arg_parser.parse_args()
 
-wiki = RedmineWiki(Redmine(redmine_address, key=redmine_key), project_name)
+wiki = RedmineWiki(Redmine(redmine_address, key=redmine_key, requests={'verify': False}), project_name)
 
 print("Fetching input page from Redmine.")
 input_page = wiki.get(input_page_name)
