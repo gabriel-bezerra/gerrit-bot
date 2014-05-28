@@ -30,8 +30,8 @@ class ReportPage:
     def __change_rows(self):
         def review_filter(review):
             return review.author.email.endswith("@lsd.ufcg.edu.br") and \
-                    (self.report_item.from_date <= review.timestamp if self.report_item.from_date != None else True) and \
-                    (review.timestamp <= self.report_item.until_date  if self.report_item.until_date != None else True)
+                    (self.report_item.from_time <= review.timestamp if self.report_item.from_time != None else True) and \
+                    (review.timestamp <= self.report_item.until_time  if self.report_item.until_time != None else True)
 
         change_rows = []
         for change in self.changes:

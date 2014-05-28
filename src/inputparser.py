@@ -127,80 +127,80 @@ assert review_table.rows[4].review_numbers == ''
 #TODO: Add tzinfo
 from datetime import datetime, date, time
 
-def parse_date_from(date_str):
+def parse_time_from(date_str):
     return datetime.strptime(date_str, '%Y-%m-%d')
 
-def parse_date_until(date_str):
+def parse_time_until(date_str):
     return datetime.combine(datetime.strptime(date_str, '%Y-%m-%d'), time.max)
 
-assert parse_date_from('2014-04-28') == datetime.combine(date(year=2014, month=4, day=28), time.min)
-assert parse_date_from('2014-04-28') == parse_date_from('2014-04-28')
-assert parse_date_from('2014-04-27') < parse_date_from('2014-04-28')
-assert parse_date_from('2014-04-29') > parse_date_from('2014-04-28')
+assert parse_time_from('2014-04-28') == datetime.combine(date(year=2014, month=4, day=28), time.min)
+assert parse_time_from('2014-04-28') == parse_time_from('2014-04-28')
+assert parse_time_from('2014-04-27') < parse_time_from('2014-04-28')
+assert parse_time_from('2014-04-29') > parse_time_from('2014-04-28')
 
-assert parse_date_until('2014-04-28') == datetime.combine(date(year=2014, month=4, day=28), time.max)
-assert parse_date_until('2014-04-28') == parse_date_until('2014-04-28')
-assert parse_date_until('2014-04-27') < parse_date_until('2014-04-28')
-assert parse_date_until('2014-04-29') > parse_date_until('2014-04-28')
+assert parse_time_until('2014-04-28') == datetime.combine(date(year=2014, month=4, day=28), time.max)
+assert parse_time_until('2014-04-28') == parse_time_until('2014-04-28')
+assert parse_time_until('2014-04-27') < parse_time_until('2014-04-28')
+assert parse_time_until('2014-04-29') > parse_time_until('2014-04-28')
 
-assert parse_date_from('2014-04-28') < parse_date_until('2014-04-28')
-assert parse_date_from('2014-04-29') > parse_date_until('2014-04-28')
+assert parse_time_from('2014-04-28') < parse_time_until('2014-04-28')
+assert parse_time_from('2014-04-29') > parse_time_until('2014-04-28')
 
 class ReviewReportItem:
     def __init__(self, row):
         self.wiki_page = row.wiki_page
         self.sprint = row.sprint
 
-        self.from_date = parse_date_from(row.from_date) if row.from_date else None
-        self.until_date = parse_date_until(row.until_date) if row.from_date else None
+        self.from_time = parse_time_from(row.from_date) if row.from_date else None
+        self.until_time = parse_time_until(row.until_date) if row.from_date else None
 
         self.should_be_updated = bool(self.wiki_page) and (row.should_be_updated == 'yes')
 
         self.review_numbers = row.review_numbers.split()
 
     def __repr__(self):
-        return 'ReviewReportItem({0}, {1}, {2}, {3}, {4}, {5})'.format(repr(self.wiki_page), repr(self.sprint), repr(self.from_date), \
-                repr(self.until_date), repr(self.should_be_updated), repr(self.review_numbers))
+        return 'ReviewReportItem({0}, {1}, {2}, {3}, {4}, {5})'.format(repr(self.wiki_page), repr(self.sprint), repr(self.from_time), \
+                repr(self.until_time), repr(self.should_be_updated), repr(self.review_numbers))
 
 report_items = [ReviewReportItem(r) for r in review_table.rows]
 
 ##| [[US904 - As a Dev I want to do code review on OpenStack code]] | #9 | 2014-04-28 | 2014-05-18 | yes | 89220 90476 |
 assert report_items[0].wiki_page == 'US904 - As a Dev I want to do code review on OpenStack code'
 assert report_items[0].sprint == '#9'
-assert report_items[0].from_date == parse_date_from('2014-04-28')
-assert report_items[0].until_date == parse_date_until('2014-05-18')
+assert report_items[0].from_time == parse_time_from('2014-04-28')
+assert report_items[0].until_time == parse_time_until('2014-05-18')
 assert report_items[0].should_be_updated == True
 assert report_items[0].review_numbers == ['89220', '90476']
 
 #| [[US1004 - As a Dev I want to do code review on OpenStack code]] | #10 | 2014-05-19 | 2014-06-08 | no | |
 assert report_items[1].wiki_page == 'US1004 - As a Dev I want to do code review on OpenStack code'
 assert report_items[1].sprint == '#10'
-assert report_items[1].from_date == parse_date_from('2014-05-19')
-assert report_items[1].until_date == parse_date_until('2014-06-08')
+assert report_items[1].from_time == parse_time_from('2014-05-19')
+assert report_items[1].until_time == parse_time_until('2014-06-08')
 assert report_items[1].should_be_updated == False
 assert report_items[1].review_numbers == []
 
 #| [[US1104 - As a Dev I want to do code review on OpenStack code]] | #11 | | | | |
 assert report_items[2].wiki_page == 'US1104 - As a Dev I want to do code review on OpenStack code'
 assert report_items[2].sprint == '#11'
-assert report_items[2].from_date == None
-assert report_items[2].until_date == None
+assert report_items[2].from_time == None
+assert report_items[2].until_time == None
 assert report_items[2].should_be_updated == False
 assert report_items[2].review_numbers == []
 
 #|||||||
 assert report_items[3].wiki_page == ''
 assert report_items[3].sprint == ''
-assert report_items[3].from_date == None
-assert report_items[3].until_date == None
+assert report_items[3].from_time == None
+assert report_items[3].until_time == None
 assert report_items[3].should_be_updated == False
 assert report_items[3].review_numbers == []
 
 #| [[  ]] ||||yes||
 assert report_items[4].wiki_page == ''
 assert report_items[4].sprint == ''
-assert report_items[4].from_date == None
-assert report_items[4].until_date == None
+assert report_items[4].from_time == None
+assert report_items[4].until_time == None
 assert report_items[4].should_be_updated == False
 assert report_items[4].review_numbers == []
 
