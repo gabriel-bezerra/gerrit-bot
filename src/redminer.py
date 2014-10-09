@@ -110,7 +110,7 @@ for report_item in parsed_input_page.report_items:
         changes = change_parser.changes(report_item.review_numbers)
 
         report_page = ReportPage(report_item, changes, timestamp)
-        page_title = report_page.title
+        page_title = report_page.title.replace('.', '')  # because Redmine does it automatically in the HTML interface but not in the API
         page_text = report_page.wiki_text()
 
         if args.std_out:
