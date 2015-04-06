@@ -125,7 +125,8 @@ class ChangeParser:
             messages_of_this_revision = [m for m in change["messages"] if m["_revision_number"] == r.number]
             #debug(messages_of_this_revision)
 
-            code_reviews = revision["labels"]["Code-Review"]["all"]
+            # In some abandoned changes, the "Code-Review" label is not present, so we fallback to an empty one.
+            code_reviews = revision["labels"].get("Code-Review", { "all": [] })["all"]
             for code_review in code_reviews:
                 #debug(change["messages"])
                 author = Author(code_review.get("username", ""), code_review["name"], code_review.get("email", ""))
@@ -163,7 +164,8 @@ if __name__ == '__main__':
     #change_numbers = [90771, 90476]
     #change_numbers = [87406, 86250, 85199, 79112, 64103, 87861, 79411, 57492, 78658, 90476]
     #change_numbers = ['87406', '86250', '85199', '79112', '64103', '87861', '79411', '57492', '78658', '90476']
-    change_numbers = ['89220']
+    #change_numbers = ['89220']
+    change_numbers = ['168776']
 
     print(repr(change_numbers))
 
