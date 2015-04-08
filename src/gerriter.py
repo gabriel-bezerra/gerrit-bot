@@ -78,8 +78,25 @@ class Review:
         return "{0:+d}".format(self.value) if self.value != 0 else str(0)
 
     def message_without_vote(self):
-        stripped_message = self.message.strip()
-        return stripped_message.partition('\n\n')[2].strip() if len(stripped_message.split('\n')) > 1 else stripped_message.partition(':')[2].strip()
+        message_text = self.message.strip()
+        message_without_vote = ""
+
+        matches_with_vote = re.match("^Patch Set [0-9]+: Code-Review([+-][12])($|\n\n.*)", message_text)
+        matches_without_vote = re.match("^Patch Set [0-9]+:( |\n)+(.*)", message_text)
+
+        if matches_with_vote is not None and matches_with_vote.group(2) is not None:
+            message_without_vote = matches_with_vote.group(2).strip()
+            debug("matches with vote")
+
+        elif matches_without_vote is not None and matches_without_vote.group(2) is not None:
+            message_without_vote = matches_without_vote.group(2).strip()
+            debug("matches without vote")
+
+        else:
+            message_without_vote = message_text.strip()
+            debug("matches with none")
+
+        return message_without_vote
 
     def __repr__(self):
         return "Review("+repr(self.vote())+", "+repr(self.author)+", "+repr(self.message)+", "+repr(self.timestamp)+")"
