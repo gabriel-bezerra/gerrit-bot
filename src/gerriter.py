@@ -7,6 +7,7 @@ from datetime import datetime
 
 import json
 import urllib2
+import re
 
 def debug(msg):
     pass
@@ -24,7 +25,7 @@ class Gerrit:
     """
 
     def fetch_change(self, change_number):
-        url = "https://review.openstack.org/changes/" + str(change_number) + "?o=all_revisions&o=messages"
+        url = "https://review.openstack.org/changes/" + str(change_number) + "/detail?o=all_revisions&o=messages"
         return self.__fetch_json(url)
 
     def fetch_revision(self, change_number, revision_id):
@@ -125,28 +126,26 @@ class ChangeParser:
             messages_of_this_revision = [m for m in change["messages"] if m["_revision_number"] == r.number]
             #debug(messages_of_this_revision)
 
-            # In some abandoned changes, the "Code-Review" label is not present, so we fallback to an empty one.
-            code_reviews = revision["labels"].get("Code-Review", { "all": [] })["all"]
-            for code_review in code_reviews:
-                #debug(change["messages"])
-                author = Author(code_review.get("username", ""), code_review["name"], code_review.get("email", ""))
+            for message in messages_of_this_revision:
+                message_author = message["author"]
+                author = Author(message_author.get("username", ""), message_author["name"], message_author.get("email", ""))
+                debug(message)
                 debug(author)
 
-                value = code_review["value"]
+                message_text = message["message"]
+                timestamp = datetime.strptime(message["date"].rpartition('.')[0]+" UTC", "%Y-%m-%d %H:%M:%S %Z")
 
-                messages_of_this_revision_of_this_author = [m for m in messages_of_this_revision if m["author"]["name"] == author.name]
-                #debug(messages_of_this_revision_of_this_author)
+                value = 0
+                matches = re.match("^Patch Set [0-9]+: Code-Review([+-][12])($|\n\n)", message_text)
+                if matches is not None:
+                    debug("Vote match: " + matches.group(1))
+                    value = int(matches.group(1))
+                else:
+                    debug("Vote did not match.")
 
-                for message in messages_of_this_revision_of_this_author:
-                    message_text = message["message"]
-                    #debug(message)
-
-                    # Timestamps are given in UTC and have the format "yyyy-mm-dd hh:mm:ss.fffffffff" where "ffffffffff" indicates the nanoseconds.
-                    timestamp = datetime.strptime(message["date"].rpartition('.')[0]+" UTC", "%Y-%m-%d %H:%M:%S %Z")
-
-                    review = Review(value, author, message_text, timestamp)
-                    r.reviews.append(review)
-                    debug(review)
+                review = Review(value, author, message_text, timestamp)
+                r.reviews.append(review)
+                debug(review)
 
             #debug(code_reviews)
             debug("==========")
