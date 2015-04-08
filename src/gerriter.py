@@ -134,10 +134,7 @@ class ChangeParser:
         revision_ids = change["revisions"].keys()
         debug("==========")
         for revision_id in revision_ids:
-            revision = self.gerrit.fetch_revision(change_number, revision_id)
-            #debug(revision)
-
-            r = Revision(revision["id"], revision["revisions"].values()[0]["_number"])
+            r = Revision(revision_id, change["revisions"][revision_id]["_number"])
             debug("Revision: " + str(r.number))
 
             messages_of_this_revision = [m for m in change["messages"] if m["_revision_number"] == r.number]
