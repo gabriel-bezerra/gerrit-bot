@@ -107,7 +107,7 @@ for report_item in parsed_input_page.report_items:
     if report_item.should_be_updated or args.ignore_should_be_updated:
         print("Fetching: {0}".format(report_item.wiki_page))
         timestamp = time.localtime()
-        changes = change_parser.changes(report_item.review_numbers)
+        changes = change_parser.changes(set(report_item.review_numbers))
 
         report_page = ReportPage(report_item, changes, timestamp)
         page_title = report_page.title.replace('.', '')  # because Redmine does it automatically in the HTML interface but not in the API
