@@ -141,6 +141,8 @@ class ChangeParser:
             #debug(messages_of_this_revision)
 
             for message in messages_of_this_revision:
+                if message.get("author") is None:
+                    continue
                 message_author = message["author"]
                 author = Author(message_author.get("username", ""), message_author["name"], message_author.get("email", ""))
                 debug(message)
