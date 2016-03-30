@@ -114,7 +114,7 @@ for report_item in parsed_input_page.report_items:
         page_text = report_page.wiki_text()
 
         if args.std_out:
-            print('"{0}"\'s text:\n{1}'.format(page_title, page_text))
+            print(unicode('"{0}"\'s text:\n{1}').format(page_title, page_text))
 
         if args.dry_run:
             print("Would update {0} on Redmine".format(page_title))
