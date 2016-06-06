@@ -16,13 +16,12 @@ from inputparser import ParsedInputPage
 # Wiki and Report abstraction
 
 class ReportPage:
-    def __init__(self, report_item, changes, page_timestamp):
+    def __init__(self, report_item, changes, page_timestamp, skip_users=''):
         self.report_item = report_item
         self.title = report_item.wiki_page
-
         self.changes = changes
-
         self.page_timestamp = page_timestamp
+        self.skip_users = skip_users
 
     def wiki_text(self):
         return self.__crlf_ed(self.__template_with(self.title, self.__change_rows(), self.page_timestamp))
@@ -30,23 +29,24 @@ class ReportPage:
     def __change_rows(self):
         def review_filter(review):
             return review.author.email.endswith("@lsd.ufcg.edu.br") and \
-                    (self.report_item.from_time <= review.timestamp if self.report_item.from_time != None else True) and \
-                    (review.timestamp <= self.report_item.until_time  if self.report_item.until_time != None else True)
+                   (review.author.email not in self.skip_users) and \
+                   (self.report_item.from_time <= review.timestamp if self.report_item.from_time != None else True) and \
+                   (review.timestamp <= self.report_item.until_time  if self.report_item.until_time != None else True)
 
         change_rows = []
         for change in self.changes:
             for revision in change.revisions:
                 for review in revision.reviews:
                     if review_filter(review):
-                        #| Reviewer | Review | Project | Patch | Revision score | Comment |
+                        # | Reviewer | Review | Project | Patch | Revision score | Comment |
                         reviewer = review.author.name.split()[0]
-                        rev = '"'+(str(change.number)+': '+change.subject).replace('"', '')+'":'+change.permalink()
+                        rev = '"' + (str(change.number) + ': ' + change.subject).replace('"', '') + '":' + change.permalink()
                         project = change.project
                         patch = str(revision.number)
                         score = review.vote()
                         comment = review.message_without_vote().replace('\n', ' ')
 
-                        change_rows.append("|"+ reviewer +"|"+ rev +"|"+ project +"|"+ patch +"|"+ score +"|"+ comment +"|")
+                        change_rows.append("|" + reviewer + "|" + rev + "|" + project + "|" + patch + "|" + score + "|" + comment + "|")
 
         return change_rows
 
@@ -86,6 +86,7 @@ redmine_address = env['REDMINE_ADDRESS']
 redmine_key = env['REDMINE_KEY']
 project_name = env['REDMINE_PROJECT']
 input_page_name = env['REDMINE_INPUT_PAGE']
+skip_users = env['GERRITBOT_SKIP_USERS']
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('-n', '--dry-run', action='store_true', help='does not write reports back to Redmine')
@@ -109,7 +110,7 @@ for report_item in parsed_input_page.report_items:
         timestamp = time.localtime()
         changes = change_parser.changes(set(report_item.review_numbers))
 
-        report_page = ReportPage(report_item, changes, timestamp)
+        report_page = ReportPage(report_item, changes, timestamp, skip_users)
         page_title = report_page.title.replace('.', '')  # because Redmine does it automatically in the HTML interface but not in the API
         page_text = report_page.wiki_text()
 
