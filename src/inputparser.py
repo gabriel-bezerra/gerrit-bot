@@ -25,7 +25,10 @@ class ReviewTable:
         table_index = wiki_text.find('\ntable{') + 1 #remove the \n
         titles_row_index = wiki_text.find('|', table_index)
         first_row_index = wiki_text.find('\n|', titles_row_index) + 1 #remove the \n
-        after_last_row_index = wiki_text.find('\n\n', first_row_index)
+        after_last_row_index = \
+            wiki_text.find('\n\n', first_row_index) \
+            if wiki_text.find('\n\n', first_row_index) > -1 \
+            else len(wiki_text)
 
         column_titles_text = wiki_text[titles_row_index:first_row_index]
         rows_text = wiki_text[first_row_index:after_last_row_index]
