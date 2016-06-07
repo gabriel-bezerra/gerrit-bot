@@ -16,12 +16,12 @@ from inputparser import ParsedInputPage
 # Wiki and Report abstraction
 
 class ReportPage:
-    def __init__(self, report_item, changes, page_timestamp, skip_users=''):
+    def __init__(self, report_item, changes, page_timestamp, emails_to_skip=[]):
         self.report_item = report_item
         self.title = report_item.wiki_page
         self.changes = changes
         self.page_timestamp = page_timestamp
-        self.skip_users = skip_users
+        self.emails_to_skip = emails_to_skip
 
     def wiki_text(self):
         return self.__crlf_ed(self.__template_with(self.title, self.__change_rows(), self.page_timestamp))
@@ -29,7 +29,7 @@ class ReportPage:
     def __change_rows(self):
         def review_filter(review):
             return review.author.email.endswith("@lsd.ufcg.edu.br") and \
-                   (review.author.email not in self.skip_users) and \
+                   (review.author.email not in self.emails_to_skip) and \
                    (self.report_item.from_time <= review.timestamp if self.report_item.from_time != None else True) and \
                    (review.timestamp <= self.report_item.until_time  if self.report_item.until_time != None else True)
 
@@ -86,7 +86,7 @@ redmine_address = env['REDMINE_ADDRESS']
 redmine_key = env['REDMINE_KEY']
 project_name = env['REDMINE_PROJECT']
 input_page_name = env['REDMINE_INPUT_PAGE']
-skip_users = env['GERRITBOT_SKIP_USERS']
+emails_to_skip = [e.strip() for e in env.get('EMAILS_TO_SKIP', '').split(',') if len(e.strip()) > 0]
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('-n', '--dry-run', action='store_true', help='does not write reports back to Redmine')
@@ -110,7 +110,7 @@ for report_item in parsed_input_page.report_items:
         timestamp = time.localtime()
         changes = change_parser.changes(set(report_item.review_numbers))
 
-        report_page = ReportPage(report_item, changes, timestamp, skip_users)
+        report_page = ReportPage(report_item, changes, timestamp, emails_to_skip)
         page_title = report_page.title.replace('.', '')  # because Redmine does it automatically in the HTML interface but not in the API
         page_text = report_page.wiki_text()
 

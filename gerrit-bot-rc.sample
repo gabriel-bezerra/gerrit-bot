@@ -5,6 +5,7 @@ export REDMINE_ADDRESS=http://redmine.example.com
 export REDMINE_KEY=abcdefg12345
 export REDMINE_PROJECT=myproject
 export REDMINE_INPUT_PAGE='Code Reviews'
+export EMAILS_TO_SKIP='comma@separated.com, emails.of.ignored@users.com'
 
 # The directory where the Python virtual environment should be set.
 export VENV_DIR=venv
